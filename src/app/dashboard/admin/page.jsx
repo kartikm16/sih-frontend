@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { RiskBadge, calculateRisk } from "@/components/RiskIndicator";
+import { RiskBadge} from "@/components/RiskIndicator";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, LineChart, Line, Legend } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import * as Icons from "lucide-react";
+import ExportButton from "@/components/ExportButton"
 
 
 import { initializeApp } from "firebase/app";
@@ -191,30 +192,45 @@ export default function AdminDashboard() {
     }
   };
 
-  const triggerMLModel = async () => {
-    try {
-      setMlLoading(true);
-      setMlStatus("Running ML model...");
+ const triggerMLModel = async () => {
+  try {
+    setMlLoading(true);
+    setMlStatus("Running ML model...");
 
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const predictions = students.map(student => ({
-        student_id: student.student_id,
-        risk_level: Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low',
-        confidence: (Math.random() * 0.5 + 0.5).toFixed(2)
-      }));
+    // Prepare the data to send to your backend (make sure it matches your Firebase schema)
+    const payload = students.map((student) => ({
+      student_id: student.student_id,
+      marks: student.marks, // send all marks here
+      attendance: student.attendance,
+      fees_pending: student.fees_pending,
+      family_income: student.family_income,
+      exam_score: student.exam_score, // example: if needed for prediction
+      kt: student.kt, // example: if needed for prediction
+    }));
 
-      await updateStudentsWithMLPredictions(predictions);
-      setMlStatus("ML model completed successfully!");
-      
-    } catch (error) {
-      console.error("Error running ML model:", error);
-      setMlStatus("Error running ML model");
-    } finally {
-      setMlLoading(false);
-      setTimeout(() => setMlStatus(""), 5000);
-    }
-  };
+    // Call your backend API
+    const response = await fetch("http://127.0.0.1:5000/predict", {
+      method: "GET",
+    });
+
+    if (!response.ok) throw new Error("Server error");
+
+    // Assuming your backend returns predictions
+    const predictions = await response.json(); // Prediction results from backend
+
+    // Update your students with ML predictions
+    await updateStudentsWithMLPredictions(predictions);
+
+    setMlStatus("ML model completed successfully!");
+  } catch (error) {
+    // console.error("Error running ML model:", error);
+    // setMlStatus("Error running ML model");
+  } finally {
+    setMlLoading(false);
+    setTimeout(() => setMlStatus(""), 5000);
+  }
+};
+
 
   const updateStudentsWithMLPredictions = async (predictions) => {
     const updates = {};
@@ -236,13 +252,8 @@ export default function AdminDashboard() {
     attendance: s.attendance || 0,
     scores: s.marks || { Maths: 0, Physics: 0, Chemistry: 0, English: 0 },
     familyIncome: s.family_income,
-    feesPending: (s.fees_pending || 0) > 0,
-    risk: calculateRisk({ 
-      scores: s.marks || {}, 
-      attendancePct: s.attendance || 0, 
-      familyIncome: s.family_income, 
-      feesPending: (s.fees_pending || 0) > 0 
-    }),
+    feesPending: s.fees_pending, //(s.fees_pending || 0) > 0,
+    risk: s.risk_status,
     backlogs: s.kt || 0,
     exam_score: s.exam_score || 0,
     risk_status: s.risk_status || "unknown"
@@ -250,7 +261,6 @@ export default function AdminDashboard() {
 
   const filtered = useMemo(() => enriched.filter((s) => {
     if (deptFilter !== "all" && s.dept !== deptFilter) return false;
-    if (zoneFilter !== "all" && s.risk.zone !== zoneFilter) return false;
     if (query) {
       const q = query.toLowerCase();
       if (!(`${s.name}`.toLowerCase().includes(q) || 
@@ -266,9 +276,9 @@ export default function AdminDashboard() {
   const totals = {
     students: enriched.length,
     faculty: faculty.length,
-    green: enriched.filter(s => s.risk.zone === "green").length,
-    yellow: enriched.filter(s => s.risk.zone === "yellow").length,
-    red: enriched.filter(s => s.risk.zone === "red").length,
+    green: enriched.filter(s => s.risk_status === "Low Risk").length,
+    yellow: enriched.filter(s => s.risk_status === "Medium Risk").length,
+    red: enriched.filter(s => s.risk_status === "High Risk").length,
   };
 
   const zoneData = [
@@ -280,7 +290,6 @@ export default function AdminDashboard() {
   const deptData = Object.entries(
     enriched.reduce((acc, s) => {
       acc[s.dept] = acc[s.dept] || { green: 0, yellow: 0, red: 0 };
-      acc[s.dept][s.risk.zone]++;
       return acc;
     }, {})
   ).map(([dept, counts]) => ({ dept, ...counts }));
@@ -371,7 +380,9 @@ export default function AdminDashboard() {
                       e.target.value = '';
                     }}
                   />
-                  <Button 
+                  <Button class="bg-transparent" variant="outline"><ExportButton  variant='outline'/></Button>
+                  
+                  {/* <Button 
                     variant="outline" 
                     className="gap-2" 
                     onClick={() => document.getElementById('excel-import').click()}
@@ -379,7 +390,7 @@ export default function AdminDashboard() {
                   >
                     {importLoading ? <Icons.Loader className="h-4 w-4 animate-spin" /> : <Icons.Download className="h-4 w-4" />}
                     Import Excel
-                  </Button>
+                  </Button> */}
                   
                   <Button 
                     variant="outline" 
@@ -579,10 +590,10 @@ export default function AdminDashboard() {
                                   <TableCell>{s.className}</TableCell>
                                   <TableCell>{s.dept}</TableCell>
                                   <TableCell>{s.attendance}%</TableCell>
-                                  <TableCell>{s.backlogs || 0}</TableCell>
+                                  <TableCell>{s.kt || 0}</TableCell>
                                   <TableCell>{s.feesPending ? `₹${s.feesPending}` : "Clear"}</TableCell>
                                   <TableCell>{s.familyIncome ? `₹${s.familyIncome}` : "—"}</TableCell>
-                                  <TableCell><RiskBadge result={s.risk} /></TableCell>
+                                  <TableCell><RiskBadge result={s.risk_status}/></TableCell>
                                   <TableCell className="text-right">
                                     <Dialog>
                                       <DialogTrigger asChild>

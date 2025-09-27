@@ -1,11 +1,11 @@
-"use client"
+"use client";
 import { useEffect, useMemo, useState } from "react";
 import { ref, get, child } from "firebase/database";
 import { database } from "@/firebaseConfig";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { RiskBadge, calculateRisk } from "@/components/RiskIndicator";
+import { RiskBadge } from "@/components/RiskIndicator";
 
 export default function StudentDashboard() {
   const [user, setUser] = useState(null); // Student data from Firebase
@@ -13,7 +13,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const dbRef = ref(database);
-    const studentId = "STU001"; // Replace with dynamic ID if needed
+    const studentId = "0"; // Replace with dynamic ID if needed
 
     get(child(dbRef, `students/${studentId}`))
       .then((snapshot) => {
@@ -28,20 +28,16 @@ export default function StudentDashboard() {
       });
   }, []);
 
+  // ✅ Always call hooks, even if user is null
+  const risk = useMemo(() => {
+    if (!user) return null;
+    return "Low Risk"
+  }, [user]);
+
+  // Now safe to return conditionally
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>No student data found</p>;
 
-  // Compute risk using marks, attendance, fees, income
-  const risk = useMemo(
-    () =>
-      calculateRisk({
-        scores: user.marks,
-        attendancePct: user.attendance,
-        familyIncome: user.family_income,
-        feesPending: user.fees_pending > 0,
-      }),
-    [user]
-  );
 
   return (
     <div className="container mx-auto py-8 space-y-8">

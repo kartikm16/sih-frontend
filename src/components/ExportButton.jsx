@@ -23,7 +23,7 @@ export default function ExcelUpload() {
     const data = await res.json();
     alert(data.message);
   };
-
+ 
   return (
     <div className="flex flex-row gap-2 items-center">
  <label htmlFor="file-upload" class='border-black border-1 px-2 py-1  w-30 rounded-md'>

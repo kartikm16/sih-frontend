@@ -14,9 +14,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import * as Icons from "lucide-react";
 
+
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, off, set, update, remove } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAqK_GGEUELDtQjh8Nw-ERDjoj3b1MTlA0",
@@ -33,7 +36,9 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const storage = getStorage(app);
 
+
 const COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
+
 
 export default function AdminDashboard() {
   const [students, setStudents] = useState([]);
@@ -564,10 +569,10 @@ export default function AdminDashboard() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {paged.map((s) => {
+                            {paged.map((s,index) => {
                               const isSelected = !!selected[s.id];
                               return (
-                                <TableRow key={s.id} className="odd:bg-muted/20 hover:bg-muted/40 transition-colors">
+                                <TableRow key={`${s.id}_${index}`} className="odd:bg-muted/20 hover:bg-muted/40 transition-colors">
                                   <TableCell><Checkbox checked={isSelected} onCheckedChange={(v) => setSelected(prev => ({ ...prev, [s.id]: Boolean(v) }))} /></TableCell>
                                   <TableCell className="font-mono">{s.id}</TableCell>
                                   <TableCell className="font-medium">{s.name}</TableCell>

@@ -19,7 +19,7 @@ export default function ExcelUpload() {
     //   method: "POST",
     //   body: formData,
     // });
-    const res = await fetch(" https://d1da9e145882.ngrok-free.app/uploadexcel", {
+    const res = await fetch("https://sih-backend-4dqt.onrender.com/uploadexcel", {
       method: "POST",
       body: formData,
     });

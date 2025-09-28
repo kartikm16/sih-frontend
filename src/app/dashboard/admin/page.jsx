@@ -209,7 +209,10 @@ export default function AdminDashboard() {
     }));
 
     // Call your backend API
-    const response = await fetch("http://127.0.0.1:5000/predict", {
+    // const response = await fetch("http://127.0.0.1:5000/predict", {
+    //   method: "GET",
+    // });
+        const response = await fetch("https://d1da9e145882.ngrok-free.app/predict", {
       method: "GET",
     });
 
@@ -287,13 +290,25 @@ export default function AdminDashboard() {
     { name: "Red", value: totals.red, color: COLORS[2] },
   ];
 
-  const deptData = Object.entries(
-    enriched.reduce((acc, s) => {
-      acc[s.dept] = acc[s.dept] || { green: 0, yellow: 0, red: 0 };
-      return acc;
-    }, {})
-  ).map(([dept, counts]) => ({ dept, ...counts }));
+ const deptData = Object.entries(
+  enriched.reduce((acc, s) => {
+    // Initialize department if not exists
+    if (!acc[s.dept]) {
+      acc[s.dept] = { green: 0, yellow: 0, red: 0 };
+    }
 
+    // Increment the proper risk category
+    if (s.risk_status === "Low Risk") {
+      acc[s.dept].green++;
+    } else if (s.risk_status === "Medium Risk") {
+      acc[s.dept].yellow++;
+    } else if (s.risk_status === "High Risk") {
+      acc[s.dept].red++;
+    }
+
+    return acc;
+  }, {})
+).map(([dept, counts]) => ({ dept, ...counts }));
   const trendData = [
     { sem: "S1", yellow: 12, red: 5 },
     { sem: "S2", yellow: 9, red: 6 },

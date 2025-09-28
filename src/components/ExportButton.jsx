@@ -15,7 +15,11 @@ export default function ExcelUpload() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("http://127.0.0.1:5000/uploadexcel", {
+    // const res = await fetch("http://127.0.0.1:5000/uploadexcel", {
+    //   method: "POST",
+    //   body: formData,
+    // });
+    const res = await fetch(" https://d1da9e145882.ngrok-free.app/uploadexcel", {
       method: "POST",
       body: formData,
     });

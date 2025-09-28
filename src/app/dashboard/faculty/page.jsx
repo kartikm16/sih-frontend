@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import * as Icons from "lucide-react";
+import {database} from "@/firebaseConfig"
 
 
 import { initializeApp } from "firebase/app";

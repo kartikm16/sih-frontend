@@ -12,6 +12,7 @@ import { RiskBadge} from "@/components/RiskIndicator";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, LineChart, Line, Legend } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { database } from '@/firebaseConfig'
 import * as Icons from "lucide-react";
 import ExportButton from "@/components/ExportButton"
 

@@ -213,7 +213,7 @@ export default function AdminDashboard() {
     // const response = await fetch("http://127.0.0.1:5000/predict", {
     //   method: "GET",
     // });
-        const response = await fetch("https://sih-backend-4dqt.onrender.com/predict", {
+        const response = await fetch("https://sih-backend-1-uz1y.onrender.com//predict", {
       method: "GET",
     });
 
